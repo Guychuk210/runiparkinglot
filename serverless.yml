@@ -1,0 +1,48 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: runitest
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: parkinglot
+service: parking-lot-service
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+      Resource:
+        - arn:aws:dynamodb:us-east-1:*:table/Tickets
+
+functions:
+  entry:
+    handler: entry.handler
+    events:
+      - http:
+          path: entry
+          method: post
+  exit:
+    handler: exit.handler
+    events:
+      - http:
+          path: exit
+          method: post
+
+plugins:
+  - serverless-offline
+
+resources:
+  Resources:
+    TicketsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Tickets
+        AttributeDefinitions:
+          - AttributeName: ticketId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ticketId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
