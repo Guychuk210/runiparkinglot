@@ -23,3 +23,5 @@ build/
 # Dependency locks (optional)
 package-lock.json
 yarn.lock
+
+.serverless/
