@@ -13,11 +13,20 @@
           "Effect": "Allow",
           "Action": [
             "dynamodb:PutItem",
-            "dynamodb:GetItem"
+            "dynamodb:GetItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:Scan"
           ],
           "Resource": "arn:aws:dynamodb:us-east-1:*:table/Tickets"
         }
       ],
+      "apiGateway": {
+        "apiKeys": [
+          {
+            "name": "parkingApiKey"
+          }
+        ]
+      },
       "stage": "dev",
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
@@ -122,7 +131,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-4e29a4fc-e182",
-                "S3Key": "serverless/parking-lot-service/dev/1746521644528-2025-05-06T08:54:04.528Z/parking-lot-service.zip"
+                "S3Key": "serverless/parking-lot-service/dev/1746525034944-2025-05-06T09:50:34.944Z/parking-lot-service.zip"
               },
               "Handler": "entry.handler",
               "Runtime": "nodejs18.x",
@@ -145,7 +154,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-4e29a4fc-e182",
-                "S3Key": "serverless/parking-lot-service/dev/1746521644528-2025-05-06T08:54:04.528Z/parking-lot-service.zip"
+                "S3Key": "serverless/parking-lot-service/dev/1746525034944-2025-05-06T09:50:34.944Z/parking-lot-service.zip"
               },
               "Handler": "exit.handler",
               "Runtime": "nodejs18.x",
@@ -163,24 +172,24 @@
               "ExitLogGroup"
             ]
           },
-          "EntryLambdaVersionJ7MVdFKT4wvNS1alsFo7XHSzK0dgcwgvFuM7RPkk": {
+          "EntryLambdaVersionm3ZtFgGTLD8r7OlZULv8LYxkDE2oH6deWkWhFqVOOtg": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "EntryLambdaFunction"
               },
-              "CodeSha256": "qFqSoHk2R0gMf3QeydLOFeF6I1T7zqjBArx0yEjCY18="
+              "CodeSha256": "gkhdv0xP7v5O3psqz35h7XtDBg9Q1Dyc9e1pNuUWC7Q="
             }
           },
-          "ExitLambdaVersionAGRcEmRPfIDqIwguPN5fuf4aRbqtNEuAYX7Slk1xO3o": {
+          "ExitLambdaVersionAZOQ3UV0gvrOjj2jpKsR1UWJBBNrt1dP5nc8tpj1Q": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ExitLambdaFunction"
               },
-              "CodeSha256": "qFqSoHk2R0gMf3QeydLOFeF6I1T7zqjBArx0yEjCY18="
+              "CodeSha256": "gkhdv0xP7v5O3psqz35h7XtDBg9Q1Dyc9e1pNuUWC7Q="
             }
           },
           "ApiGatewayRestApi": {
@@ -236,7 +245,7 @@
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               },
-              "ApiKeyRequired": false,
+              "ApiKeyRequired": true,
               "AuthorizationType": "NONE",
               "Integration": {
                 "IntegrationHttpMethod": "POST",
@@ -282,7 +291,7 @@
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               },
-              "ApiKeyRequired": false,
+              "ApiKeyRequired": true,
               "AuthorizationType": "NONE",
               "Integration": {
                 "IntegrationHttpMethod": "POST",
@@ -317,7 +326,7 @@
               "ExitLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1746521628089": {
+          "ApiGatewayDeployment1746525017679": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -329,6 +338,50 @@
               "ApiGatewayMethodEntryPost",
               "ApiGatewayMethodExitPost"
             ]
+          },
+          "ApiGatewayApiKey1": {
+            "Type": "AWS::ApiGateway::ApiKey",
+            "Properties": {
+              "Enabled": true,
+              "Name": "parkingApiKey",
+              "StageKeys": [
+                {
+                  "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  "StageName": "dev"
+                }
+              ]
+            },
+            "DependsOn": "ApiGatewayDeployment1746525017679"
+          },
+          "ApiGatewayUsagePlan": {
+            "Type": "AWS::ApiGateway::UsagePlan",
+            "DependsOn": "ApiGatewayDeployment1746525017679",
+            "Properties": {
+              "ApiStages": [
+                {
+                  "ApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  "Stage": "dev"
+                }
+              ],
+              "Description": "Usage plan for parking-lot-service dev stage",
+              "UsagePlanName": "parking-lot-service-dev"
+            }
+          },
+          "ApiGatewayUsagePlanKey1": {
+            "Type": "AWS::ApiGateway::UsagePlanKey",
+            "Properties": {
+              "KeyId": {
+                "Ref": "ApiGatewayApiKey1"
+              },
+              "KeyType": "API_KEY",
+              "UsagePlanId": {
+                "Ref": "ApiGatewayUsagePlan"
+              }
+            }
           },
           "EntryLambdaPermissionApiGateway": {
             "Type": "AWS::Lambda::Permission",
@@ -434,7 +487,7 @@
           "EntryLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "EntryLambdaVersionJ7MVdFKT4wvNS1alsFo7XHSzK0dgcwgvFuM7RPkk"
+              "Ref": "EntryLambdaVersionm3ZtFgGTLD8r7OlZULv8LYxkDE2oH6deWkWhFqVOOtg"
             },
             "Export": {
               "Name": "sls-parking-lot-service-dev-EntryLambdaFunctionQualifiedArn"
@@ -443,7 +496,7 @@
           "ExitLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ExitLambdaVersionAGRcEmRPfIDqIwguPN5fuf4aRbqtNEuAYX7Slk1xO3o"
+              "Ref": "ExitLambdaVersionAZOQ3UV0gvrOjj2jpKsR1UWJBBNrt1dP5nc8tpj1Q"
             },
             "Export": {
               "Name": "sls-parking-lot-service-dev-ExitLambdaFunctionQualifiedArn"
@@ -491,6 +544,7 @@
             "http": {
               "path": "entry",
               "method": "post",
+              "private": true,
               "integration": "AWS_PROXY"
             }
           }
@@ -501,7 +555,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "EntryLambdaVersionJ7MVdFKT4wvNS1alsFo7XHSzK0dgcwgvFuM7RPkk"
+        "versionLogicalId": "EntryLambdaVersionm3ZtFgGTLD8r7OlZULv8LYxkDE2oH6deWkWhFqVOOtg"
       },
       "exit": {
         "handler": "exit.handler",
@@ -510,6 +564,7 @@
             "http": {
               "path": "exit",
               "method": "post",
+              "private": true,
               "integration": "AWS_PROXY"
             }
           }
@@ -520,7 +575,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "ExitLambdaVersionAGRcEmRPfIDqIwguPN5fuf4aRbqtNEuAYX7Slk1xO3o"
+        "versionLogicalId": "ExitLambdaVersionAZOQ3UV0gvrOjj2jpKsR1UWJBBNrt1dP5nc8tpj1Q"
       }
     },
     "resources": {
@@ -574,7 +629,7 @@
     "artifact": "C:\\Codebase\\Uni\\CloudParkingLot\\.serverless\\parking-lot-service.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/parking-lot-service/dev/1746521644528-2025-05-06T08:54:04.528Z",
+    "artifactDirectoryName": "serverless/parking-lot-service/dev/1746525034944-2025-05-06T09:50:34.944Z",
     "artifact": "parking-lot-service.zip"
   }
 }
